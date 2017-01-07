@@ -10,6 +10,11 @@ $ git clone git@github.com:spraxis/sid.git app/code/Sebas
 ```
 app/code/Sebas/ConsoleTools/Model/Sid.php
 ```
+- Enable the Sid module:
+```
+$ bin/magento module:enable Sebas_Sid
+$ bin/magento s:up
+```
 - You are good to go!
 
 <sub>
