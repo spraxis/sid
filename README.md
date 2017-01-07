@@ -92,7 +92,7 @@ $ bin/magento sid m:d --m="MyLocation"
 
 ### Enable the Template Hints for a given theme
 <sub>
-- It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > Yes
+It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > Yes
 </sub>
 
 ```
@@ -105,7 +105,7 @@ $ bin/magento sid h:on --t="ThemeName"
 
 ### Disable the Template Hints for a given theme
 <sub>
-- It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > No
+It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > No
 </sub>
 
 ```
