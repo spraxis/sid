@@ -74,20 +74,26 @@ $ bin/magento sid o:t --t="MyTheme" --f="vendor/magento/module-catalog/view/base
 ```
 
 ### Downgrade the version of a database module to the one on our code
+<sub>
+Useful when we move to an older branch with out-of-date modules
+</sub>
 
 ```
 $ bin/magento sid module:downgrade --m="ModuleName"
 ```
 Same as:
 ```
-$ bin/magento sid m:d
+$ bin/magento sid m:d --m="ModuleName"
 ```
-Example (for Company_MyModule):
+Example (for Sebas_MyLocation):
 ```
-$ bin/magento sid m:d --m="MyModule"
+$ bin/magento sid m:d --m="MyLocation"
 ```
 
 ### Enable the Template Hints for a given theme
+<sub>
+- It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > Yes
+</sub>
 
 ```
 $ bin/magento sid hint:on --t="ThemeName"
@@ -98,6 +104,9 @@ $ bin/magento sid h:on --t="ThemeName"
 ```
 
 ### Disable the Template Hints for a given theme
+<sub>
+- It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > No
+</sub>
 
 ```
 $ bin/magento sid hint:off --t="ThemeName"
