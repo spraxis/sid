@@ -12,17 +12,9 @@ app/code/Sebas/ConsoleTools/Model/Sid.php
 ```
 - You are good to go!
 
-
-Important note: remember to always develop in Developer mode
-
-To check your current mode:
-```
-$ bin/magento deploy:mode:show
-```
-To set your current mode:
-```
-$ bin/magento deploy:mode:set developer
-```
+<sub>
+Note: remember to always develop in Developer mode
+</sub>
 
 
 ## Examples
