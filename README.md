@@ -1,4 +1,5 @@
 # SID: Console Tools for Magento 2
+# ¯\\_(ツ)_/¯
 
 ## Installation
 
