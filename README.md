@@ -4,7 +4,7 @@
 
 - Go to your Magento root folder and run the following command:
 ```
-$ git clone git@github.com:spraxis/sid.git app/code/Sebas
+$ git clone git@github.com:spraxis/sid.git app/code/Sebas/Sid
 ```
 - Enter your Company name in the following file:
 ```
