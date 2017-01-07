@@ -65,10 +65,10 @@ class Sid extends Command
             )
             ->setDescription('Company specific command')
             ->setHelp(<<<EOF
-<info>$ %command.full_name% modules:company (m:c)</info> List all the modules of the company, with its code version
-<info>$ %command.full_name% clean:styles (c:s) --t="ThemeName"</info> Removes the required cache to regenerate the CSS styles of a particular theme
-<info>$ %command.full_name% clean:layouts (c:l)</info> Removes the required cache to regenerate the layouts
-<info>$ %command.full_name% clean:templates (c:t)</info> Removes the required cache to regenerate the templates
+<info>$ %command.full_name% modules:company (m:c)</info> List all the modules of your company (with its code version)
+<info>$ %command.full_name% clean:styles (c:s) --t="ThemeName"</info> Removes the specific cache to regenerate the CSS styles of a particular theme
+<info>$ %command.full_name% clean:layouts (c:l)</info> Removes the specific cache to regenerate the layouts
+<info>$ %command.full_name% clean:templates (c:t)</info> Removes the specific cache to regenerate the templates
 <info>$ %command.full_name% override:template (o:t) --t="ThemeName" --f="vendor/..."</info> Returns the path to our theme in order to override a core template
 <info>$ %command.full_name% module:downgrade (m:d) --m="ModuleName" (just the name after the underscore)</info> Downgrades the version of the database module to the one on the code
 <info>$ %command.full_name% hint:on (h:on) --t="ThemeName"</info> Enables the Template Hints for the given theme
@@ -282,19 +282,24 @@ EOF
             case 'o:t' :
                 if(null !== $input->getOption('f') && null !== $input->getOption('t')) {
                     $vendorFile = $input->getOption('f');
-                    $m = explode('/', $vendorFile);
-                    $t = explode('frontend', $vendorFile);
+                    $vFile = explode('/vendor/', $vendorFile);
+                    $vFile = 'vendor/'.end($vFile); // ie: vendor/magento/module-checkout/view/frontend/templates/cart.phtml
 
-                    $dest = 'app/design/frontend/'.self::COMPANY.'/'.$input->getOption('t').'/Magento_';
-
+                    $m = explode('/', $vFile);
                     $module = explode('module-', $m[2]);
                     $module = end($module);
                     $module = str_replace('-', ' ', $module);
                     $module = ucwords($module);
-                    $module = str_replace(' ', '', $module);
+                    $module = str_replace(' ', '', $module); // ie: Checkout
 
+                    $t = explode('view', $vFile);
+                    $template = end($t);
+                    $template = str_replace('frontend/', '', $template);
+                    $template = str_replace('base/', '', $template); // ie: templates/cart.phtml
+
+                    $dest = 'app/design/frontend/'.self::COMPANY.'/'.$input->getOption('t').'/Magento_';
                     $dest .= $module;
-                    $dest .= $t[1];
+                    $dest .= $template;
 
                     $output->writeln('
 Override the template by copying it in the <info>'.$dest.'</info> directory.
@@ -354,6 +359,6 @@ Check all the available actions by using <info>bin/magento company --help</info>
                 if (!$this->deleteDirectory($dir . "/" . $item, false)) return false;
             };
         }
-        return true; // rmdir($dir)
+        return true;
     }
 }
