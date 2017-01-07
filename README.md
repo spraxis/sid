@@ -17,7 +17,7 @@ Note: remember to always develop in Developer mode
 </sub>
 
 
-## Examples
+## Commands
 
 ### List all the modules of your company (with its code version)
 
@@ -115,6 +115,8 @@ Same as:
 ```
 $ bin/magento sid h:off --t="ThemeName"
 ```
+
+# ¯\_(ツ)_/¯
 
 ## Badges
 
