@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Praxisis_ConsoleTools" setup_version="0.0.1">
+    <module name="Sebas_Sid" setup_version="0.0.1">
         <sequence>
             Magento_Store
         </sequence>
