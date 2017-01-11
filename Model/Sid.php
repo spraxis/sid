@@ -72,7 +72,7 @@ class Sid extends Command
 <info>$ %command.full_name% override:template (o:t) --t="ThemeName" --f="vendor/..."</info> Returns the path to our theme in order to override a core template
 <info>$ %command.full_name% module:downgrade (m:d) --m="ModuleName" (just the name after the underscore)</info> Downgrades the version of the database module to the one on the code
 <info>$ %command.full_name% hint:on (h:on) --t="ThemeName"</info> Enables the Template Hints for the given theme
-<info>$ %command.full_name% hint:on (h:off) --t="ThemeName"</info> Disables the Template Hints for the given theme
+<info>$ %command.full_name% hint:off (h:off) --t="ThemeName"</info> Disables the Template Hints for the given theme
 EOF
         );
 
@@ -282,8 +282,7 @@ EOF
             case 'o:t' :
                 if(null !== $input->getOption('f') && null !== $input->getOption('t')) {
                     $vendorFile = $input->getOption('f');
-                    $vFile = explode('/vendor/', $vendorFile);
-                    $vFile = 'vendor/'.end($vFile); // ie: vendor/magento/module-checkout/view/frontend/templates/cart.phtml
+                    $vFile = str_replace('code/vendor', 'vendor', $vendorFile); // ie: vendor/magento/module-checkout/view/frontend/templates/cart.phtml
 
                     $m = explode('/', $vFile);
                     $module = explode('module-', $m[2]);
@@ -295,7 +294,9 @@ EOF
                     $t = explode('view', $vFile);
                     $template = end($t);
                     $template = str_replace('frontend/', '', $template);
-                    $template = str_replace('base/', '', $template); // ie: templates/cart.phtml
+                    $template = str_replace('base/', '', $template); // ie: /templates/cart.phtml
+
+                    // $output->writeln('Debug: <info>'.$template.'</info>');
 
                     $dest = 'app/design/frontend/'.self::COMPANY.'/'.$input->getOption('t').'/Magento_';
                     $dest .= $module;
@@ -324,7 +325,9 @@ Check all the available actions by using <info>bin/magento company --help</info>
                     '"Asi es la vida, unos cogen otros miran"',
                     '"La religion me dice que hoy tengo q usar el disco"',
                     '"Mas lindo que pisar mierda en pata"',
-                    '"Peor es casarse con la suegra"'
+                    '"Peor es casarse con la suegra"',
+                    '"No me voy a cagar antes de tomar la purga"',
+                    '"Es tan pelotudo que necesita el culo de un vaso para hacer la O"'
                 );
                 $output->writeln('<info>'.$arturPhrases[array_rand($arturPhrases)].'</info>');
                 $output->writeln('');
@@ -362,3 +365,4 @@ Check all the available actions by using <info>bin/magento company --help</info>
         return true;
     }
 }
+
