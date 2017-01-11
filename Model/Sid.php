@@ -244,19 +244,18 @@ EOF
                 if(null !== $input->getOption('t')) {
                     $themeRoot = str_replace('THEMENAME', $input->getOption('t'), $this->themeStyles);
                     $this->deleteDirectory($themeRoot);
-                    $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $themeRoot).'</info>');
+                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $themeRoot).'</info>');
 
                     $this->deleteDirectory($this->varCache);
-                    $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varCache).'</info>');
+                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varCache).'</info>');
 
                     $this->deleteDirectory($this->varPageCache);
-                    $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varPageCache).'</info>');
-
-                    /*$this->deleteDirectory($this->varGeneration);
-                    $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varGeneration).'</info>');*/
+                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varPageCache).'</info>');
 
                     $this->deleteDirectory($this->varViewPreprocessed);
-                    $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varViewPreprocessed).'</info>');
+                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varViewPreprocessed).'</info>');
+
+                    $output->writeln('<info>Done!</info>');
                 } else {
                     $output->writeln('The option <info>--t="ThemeName"</info> is required.');
                 }
@@ -269,10 +268,12 @@ EOF
             case 'clean:l' : case 'clean:t' :
             case 'c:l' : case 'c:t' :
                 $this->deleteDirectory($this->varCache);
-                $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varCache).'</info>');
+                //$output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varCache).'</info>');
 
                 $this->deleteDirectory($this->varPageCache);
-                $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varPageCache).'</info>');
+                //$output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varPageCache).'</info>');
+
+                $output->writeln('<info>Done!</info>');
             break;
 
 
