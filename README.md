@@ -121,7 +121,7 @@ Same as:
 $ bin/magento sid h:off --t="ThemeName"
 ```
 
-# ¯\\_(ツ)_/¯
+# ¯\\\_(ツ)\_/¯
 
 ## Badges
 
