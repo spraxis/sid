@@ -46,7 +46,7 @@ $ bin/magento sid clean:all
 ```
 Same as:
 ```
-$ bin/magento sid c:s
+$ bin/magento sid c:a
 ```
 
 ### Remove the specific cache to regenerate the CSS styles
