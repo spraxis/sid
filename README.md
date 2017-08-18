@@ -55,7 +55,9 @@ $ bin/magento sid c:a
 ```
 $ bin/magento sid clean:styles --t="ThemeName"
 ```
+<sub>
 The themename is optional. If none is specified, the one set in Model.php will be used.
+</sub>
 Same as:
 ```
 $ bin/magento sid c:s
@@ -120,7 +122,9 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 ```
 $ bin/magento sid hints:on --t="ThemeName"
 ```
+<sub>
 The themename is optional. If none is specified, the one set in Model.php will be used.
+</sub>
 Same as:
 ```
 $ bin/magento sid h:on
@@ -134,7 +138,9 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 ```
 $ bin/magento sid hints:off --t="ThemeName"
 ```
+<sub>
 The themename is optional. If none is specified, the one set in Model.php will be used.
+</sub>
 Same as:
 ```
 $ bin/magento sid h:off
