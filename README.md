@@ -116,7 +116,7 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 </sub>
 
 ```
-$ bin/magento sid hint:on
+$ bin/magento sid hints:on
 ```
 Same as:
 ```
@@ -129,7 +129,7 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 </sub>
 
 ```
-$ bin/magento sid hint:off
+$ bin/magento sid hints:off
 ```
 Same as:
 ```
