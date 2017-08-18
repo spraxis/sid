@@ -1,17 +1,17 @@
 <?php
 namespace Sebas\Sid\Model;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
+    use Symfony\Component\Console\Command\Command;
+    use Symfony\Component\Console\Input\InputInterface;
+    use Symfony\Component\Console\Output\OutputInterface;
+    use Symfony\Component\Console\Input\InputArgument;
+    use Symfony\Component\Console\Input\InputOption;
 
-use Magento\Config\Model\ResourceModel\Config;
-use Magento\Framework\Module\ModuleList;
-use Magento\Framework\Module\FullModuleList;
-use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\App\ResourceConnection;
+    use Magento\Config\Model\ResourceModel\Config;
+    use Magento\Framework\Module\ModuleList;
+    use Magento\Framework\Module\FullModuleList;
+    use Magento\Framework\App\Filesystem\DirectoryList;
+    use Magento\Framework\App\ResourceConnection;
 
 class Sid extends Command
 {
@@ -19,6 +19,8 @@ class Sid extends Command
     const COMPANY = 'Company_Name'; // check folder name under app/design/[COMPANY]
     const THEME = 'Theme_Name'; // check folder name under app/design/COMPANY/[THEME]
     const STORE = 'Store_Name'; // check the 'store.name' field on the database
+    const LOCALIZATION = 'en_US'; // check folder name under pub/static/frontend/COMPANY/THEME/[LOCALIZATION]
+    const KEEP_FILES = array('.htaccess'); // files you don't want to remove when clearing the cache
     // ----------------------------
 
     const COMMAND = 'sid';
@@ -49,7 +51,7 @@ class Sid extends Command
         $this->varGeneration = $this->directoryList->getRoot().'/var/generation/';
         $this->varViewPreprocessed = $this->directoryList->getRoot().'/var/view_preprocessed/';
         $this->pubStatic = $this->directoryList->getRoot().'/pub/static/';
-        $this->themeStyles = $this->directoryList->getRoot().'/pub/static/frontend/'.self::COMPANY.'/THEMENAME/en_US/css/';
+        $this->themeStyles = $this->directoryList->getRoot().'/pub/static/frontend/'.self::COMPANY.'/THEMENAME/'.self::LOCALIZATION.'/css/';
 
         parent::__construct();
     }
@@ -61,7 +63,8 @@ class Sid extends Command
             ->setDefinition(
                 array(
                     new InputArgument('action', InputArgument::OPTIONAL, 'The custom argument', null),
-                    new InputOption('t', '', InputOption::VALUE_OPTIONAL, 'Path to the template, starting with vendor/', null),
+                    new InputOption('f', '', InputOption::VALUE_OPTIONAL, 'Path to the template file, starting with vendor/', null),
+                    new InputOption('t', '', InputOption::VALUE_OPTIONAL, 'Name of the theme', null),
                     new InputOption('m', '', InputOption::VALUE_OPTIONAL, 'Name of the module', null),
                     new InputOption('v', '', InputOption::VALUE_OPTIONAL, 'Desired version of the module', null)
                 )
@@ -70,15 +73,15 @@ class Sid extends Command
             ->setHelp(<<<EOF
 <info>$ %command.full_name% modules:company (m:c)</info> List all the modules of your company (with its code version)
 <info>$ %command.full_name% clean:all (c:a)</info> Removes all cache (everything within /pub/static and /var)
-<info>$ %command.full_name% clean:styles (c:s)</info> Removes the specific cache to regenerate the CSS styles
+<info>$ %command.full_name% clean:styles (c:s) --t="ThemeName"</info> (--t optional) Removes the specific cache to regenerate the CSS styles
 <info>$ %command.full_name% clean:layouts (c:l)</info> Removes the specific cache to regenerate the layouts
 <info>$ %command.full_name% clean:templates (c:t)</info> Removes the specific cache to regenerate the templates
-<info>$ %command.full_name% override:template (o:t) --t="vendor/..."</info> Returns the path to our theme in order to override a core template
+<info>$ %command.full_name% override:template (o:t) --f="vendor/..." --t="ThemeName"</info> (--t optional) Returns the path to our theme in order to override a core template
 <info>$ %command.full_name% module:downgrade (m:d) --m="ModuleName" (just the name after the underscore)</info> Downgrades the version of the database module to the one on the code
-<info>$ %command.full_name% hint:on (h:on)</info> Enables the Template Hints
-<info>$ %command.full_name% hint:off (h:off)</info> Disables the Template Hints
+<info>$ %command.full_name% hint:on (h:on) --t="ThemeName"</info> (--t optional) Enables the Template Hints
+<info>$ %command.full_name% hint:off (h:off) --t="ThemeName"</info> (--t optional) Disables the Template Hints
 EOF
-        );
+            );
 
         parent::configure();
     }
@@ -112,7 +115,7 @@ EOF
                         $output->writeln($dm);
                     }
                 }
-            break;
+                break;
 
 
 
@@ -154,20 +157,20 @@ EOF
                 } else {
                     $output->writeln('The option <info>--m="ModuleName"</info> (just the part after '.self::COMPANY.'_) is required');
                 }
-            break;
+                break;
 
 
 
             case 'hints:on' :
             case 'h:on' :
                 $storeId = null;
+                $store = null !== $input->getOption('s') ? $input->getOption('s') : self::STORE;
 
                 $connection = $this->resource->getConnection('default');
-                $result = $connection->fetchRow("SELECT store_id FROM store WHERE name = '".self::STORE."'");
+                $result = $connection->fetchRow("SELECT store_id FROM store WHERE name LIKE '%$store%'");
                 $storeId = $result['store_id'];
 
                 if(null !== $storeId) {
-
                     $connection = $this->resource->getConnection('default');
                     $result = $connection->fetchRow("
                         SELECT config_id FROM core_config_data
@@ -185,26 +188,26 @@ EOF
                         $this->deleteDirectory($this->varCache);
                         $this->deleteDirectory($this->varPageCache);
 
-                        $output->writeln("Templates Hints are now <info>enabled</info> for the <info>".self::STORE."</info> theme");
+                        $output->writeln("Templates Hints are now <info>enabled</info> for the <info>".$store."</info> store");
                     }
 
                 } else {
-                    $output->writeln("We couldn't find any storeId for the <info>".self::STORE."</info> store");
+                    $output->writeln("We couldn't find any storeId for the <info>".$store."</info> store");
                 }
-            break;
+                break;
 
 
 
             case 'hints:off' :
             case 'h:off' :
                 $storeId = null;
+                $store = null !== $input->getOption('s') ? strtolower($input->getOption('s')) : self::STORE;
 
                 $connection = $this->resource->getConnection('default');
-                $result = $connection->fetchRow("SELECT store_id FROM store WHERE name = '".self::STORE."'");
+                $result = $connection->fetchRow("SELECT store_id FROM store WHERE name LIKE '%$store%'");
                 $storeId = $result['store_id'];
 
                 if(null !== $storeId) {
-
                     $connection = $this->resource->getConnection('default');
                     $result = $connection->fetchRow("
                         SELECT config_id FROM core_config_data
@@ -220,15 +223,15 @@ EOF
                         $this->deleteDirectory($this->varCache);
                         $this->deleteDirectory($this->varPageCache);
 
-                        $output->writeln("Templates Hints are now <info>disabled</info>");
+                        $output->writeln("Templates Hints <info>disabled</info> for the <info>".$store."</info> store");
                     } else {
                         $output->writeln("Templates Hints were already <info>disabled</info>");
                     }
 
                 } else {
-                    $output->writeln("We couldn't find any storeId for the <info>".self::STORE."</info> store");
+                    $output->writeln("We couldn't find any storeId for the <info>".$store."</info> store");
                 }
-            break;
+                break;
 
 
 
@@ -240,7 +243,7 @@ EOF
                 $this->deleteDirectory($this->varPageCache);
                 $this->deleteDirectory($this->varViewPreprocessed);
 
-                $output->writeln('<info>Done!</info>');
+                $output->writeln('<info>All cache cleared!</info>');
                 break;
 
 
@@ -248,14 +251,15 @@ EOF
             case 'clean:styles' :
             case 'c:styles' : case 'clean:s' :
             case 'c:s' :
-                $themeRoot = str_replace('THEMENAME', self::THEME, $this->themeStyles);
+                $theme = null !== $input->getOption('t') ? $input->getOption('t') : self::THEME;
+                $themeRoot = str_replace('THEMENAME', $theme, $this->themeStyles);
                 $this->deleteDirectory($themeRoot); // css in pub/static
                 $this->deleteDirectory($this->varCache);
                 $this->deleteDirectory($this->varPageCache);
                 $this->deleteDirectory($this->varViewPreprocessed);
 
-                $output->writeln('<info>Done!</info>');
-            break;
+                $output->writeln('<info>Styles cache cleared for the theme '.$theme.'!</info>');
+                break;
 
 
 
@@ -263,10 +267,10 @@ EOF
             case 'c:layouts' : case 'c:templates' :
             case 'clean:l' : case 'clean:t' :
             case 'c:l' : case 'c:t' :
-                $this->deleteDirectory($this->varCache);
-                $this->deleteDirectory($this->varPageCache);
+            $this->deleteDirectory($this->varCache);
+            $this->deleteDirectory($this->varPageCache);
 
-                $output->writeln('<info>Done!</info>');
+            $output->writeln('<info>Cache cleared!</info>');
             break;
 
 
@@ -274,8 +278,9 @@ EOF
             case 'override:template' :
             case 'o:template' : case 'override:t' :
             case 'o:t' :
-                if(null !== $input->getOption('t')) {
-                    $vendorFile = $input->getOption('t');
+                $theme = null !== $input->getOption('t') ? $input->getOption('t') : self::THEME;
+                if(null !== $input->getOption('f')) {
+                    $vendorFile = $input->getOption('f');
                     $vFile = str_replace('code/vendor', 'vendor', $vendorFile);
                     // ie of $vFile: vendor/magento/module-checkout/view/frontend/templates/cart.phtml
 
@@ -291,7 +296,7 @@ EOF
                     $template = str_replace('frontend/', '', $template);
                     $template = str_replace('base/', '', $template); // ie: /templates/cart.phtml
 
-                    $dest = 'app/design/frontend/'.self::COMPANY.'/'.self::THEME.'/Magento_';
+                    $dest = 'app/design/frontend/'.self::COMPANY.'/'.$theme.'/Magento_';
                     $dest .= $module;
                     $dest .= $template;
 
@@ -300,11 +305,11 @@ Override the template by copying it in the <info>'.$dest.'</info> directory.
 ');
                 } else {
                     $output->writeln('
-The option <info>--t="TemplateFile"</info> is required.
+The option <info>--f="TemplateFile"</info> is required.
 Check all the available actions with <info>bin/magento company --help</info>
 ');
                 }
-            break;
+                break;
 
 
 
@@ -325,7 +330,7 @@ Check all the available actions with <info>bin/magento company --help</info>
                 );
                 $output->writeln('<info>'.$arturPhrases[array_rand($arturPhrases)].'</info>');
                 $output->writeln('');
-            break;
+                break;
 
 
 
@@ -350,7 +355,8 @@ Check all the available actions with <info>bin/magento company --help</info>
             return unlink($dir);
         }
         foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..' || $item == '.htaccess') { continue; }
+            if ($item == '.' || $item == '..') { continue; }
+            if (in_array($item, self::KEEP_FILES)) { continue; }
             if (!$this->deleteDirectory($dir . "/" . $item, false)) {
                 chmod($dir . "/" . $item, 0777);
                 if (!$this->deleteDirectory($dir . "/" . $item, false)) return false;
