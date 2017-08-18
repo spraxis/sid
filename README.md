@@ -58,6 +58,7 @@ $ bin/magento sid clean:styles --t="ThemeName"
 <sub>
 The themename is optional. If none is specified, the one set in Model.php will be used.
 </sub>
+
 Same as:
 ```
 $ bin/magento sid c:s
@@ -125,6 +126,7 @@ $ bin/magento sid hints:on --t="ThemeName"
 <sub>
 The themename is optional. If none is specified, the one set in Model.php will be used.
 </sub>
+
 Same as:
 ```
 $ bin/magento sid h:on
@@ -141,6 +143,7 @@ $ bin/magento sid hints:off --t="ThemeName"
 <sub>
 The themename is optional. If none is specified, the one set in Model.php will be used.
 </sub>
+
 Same as:
 ```
 $ bin/magento sid h:off
