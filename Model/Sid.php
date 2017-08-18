@@ -15,8 +15,11 @@ use Magento\Framework\App\ResourceConnection;
 
 class Sid extends Command
 {
-    // Just enter your company name and you're good to go
-    const COMPANY = 'MyCompany';
+    // Just enter the following information and you're good to go
+    const COMPANY = 'Company_Name'; // check folder name under app/design/[COMPANY]
+    const THEME = 'Theme_Name'; // check folder name under app/design/COMPANY/[THEME]
+    const STORE = 'Store_Name'; // check the 'store.name' field on the database
+    // ----------------------------
 
     const COMMAND = 'sid';
 
@@ -45,6 +48,7 @@ class Sid extends Command
         $this->varPageCache = $this->directoryList->getRoot().'/var/page_cache/';
         $this->varGeneration = $this->directoryList->getRoot().'/var/generation/';
         $this->varViewPreprocessed = $this->directoryList->getRoot().'/var/view_preprocessed/';
+        $this->pubStatic = $this->directoryList->getRoot().'/pub/static/';
         $this->themeStyles = $this->directoryList->getRoot().'/pub/static/frontend/'.self::COMPANY.'/THEMENAME/en_US/css/';
 
         parent::__construct();
@@ -57,8 +61,7 @@ class Sid extends Command
             ->setDefinition(
                 array(
                     new InputArgument('action', InputArgument::OPTIONAL, 'The custom argument', null),
-                    new InputOption('t', '', InputOption::VALUE_OPTIONAL, 'Name of the theme', null),
-                    new InputOption('f', '', InputOption::VALUE_OPTIONAL, 'Path to the template, starting with vendor/', null),
+                    new InputOption('t', '', InputOption::VALUE_OPTIONAL, 'Path to the template, starting with vendor/', null),
                     new InputOption('m', '', InputOption::VALUE_OPTIONAL, 'Name of the module', null),
                     new InputOption('v', '', InputOption::VALUE_OPTIONAL, 'Desired version of the module', null)
                 )
@@ -66,13 +69,14 @@ class Sid extends Command
             ->setDescription('Company specific command')
             ->setHelp(<<<EOF
 <info>$ %command.full_name% modules:company (m:c)</info> List all the modules of your company (with its code version)
-<info>$ %command.full_name% clean:styles (c:s) --t="ThemeName"</info> Removes the specific cache to regenerate the CSS styles of a particular theme
+<info>$ %command.full_name% clean:all (c:a)</info> Removes all cache (everything within /pub/static and /var)
+<info>$ %command.full_name% clean:styles (c:s)</info> Removes the specific cache to regenerate the CSS styles
 <info>$ %command.full_name% clean:layouts (c:l)</info> Removes the specific cache to regenerate the layouts
 <info>$ %command.full_name% clean:templates (c:t)</info> Removes the specific cache to regenerate the templates
-<info>$ %command.full_name% override:template (o:t) --t="ThemeName" --f="vendor/..."</info> Returns the path to our theme in order to override a core template
+<info>$ %command.full_name% override:template (o:t) --t="vendor/..."</info> Returns the path to our theme in order to override a core template
 <info>$ %command.full_name% module:downgrade (m:d) --m="ModuleName" (just the name after the underscore)</info> Downgrades the version of the database module to the one on the code
-<info>$ %command.full_name% hint:on (h:on) --t="ThemeName"</info> Enables the Template Hints for the given theme
-<info>$ %command.full_name% hint:off (h:off) --t="ThemeName"</info> Disables the Template Hints for the given theme
+<info>$ %command.full_name% hint:on (h:on)</info> Enables the Template Hints
+<info>$ %command.full_name% hint:off (h:off)</info> Disables the Template Hints
 EOF
         );
 
@@ -89,7 +93,7 @@ EOF
             case 'modules:company' :
             case 'm:company' : case 'modules:c' :
             case 'm:c' :
-                $output->writeln('<info>List of enabled modules of the company and its code version:</info>');
+                $output->writeln('<info>List enabled modules of the company and its code version:</info>');
                 foreach($this->moduleList->getAll() as $m) {
                     if (strpos($m['name'], self::COMPANY) !== false) {
                         $output->writeln($m['name'].' -> '.$m['setup_version']);
@@ -127,7 +131,9 @@ EOF
                     if(null !== $v) {
                         $connection = $this->resource->getConnection('default');
 
-                        $result = $connection->fetchRow("SELECT schema_version FROM setup_module WHERE module = '$module'");
+                        $result = $connection->fetchRow(
+                            "SELECT schema_version FROM setup_module WHERE module = '$module'
+                        ");
                         $currentVersion = $result['schema_version'];
 
                         if($v !== $currentVersion) {
@@ -152,43 +158,36 @@ EOF
 
             case 'hints:on' :
             case 'h:on' :
-                if(null !== $input->getOption('t')) {
+                $storeId = null;
 
-                    $theme = strtolower($input->getOption('t'));
-                    $storeId = null;
+                $connection = $this->resource->getConnection('default');
+                $result = $connection->fetchRow("SELECT store_id FROM store WHERE name = '".self::STORE."'");
+                $storeId = $result['store_id'];
+
+                if(null !== $storeId) {
 
                     $connection = $this->resource->getConnection('default');
-                    $result = $connection->fetchRow("SELECT store_id FROM store WHERE name LIKE '%$theme%'");
-                    $storeId = $result['store_id'];
-
-                    if(null !== $storeId) {
-
-                        $connection = $this->resource->getConnection('default');
-                        $result = $connection->fetchRow("
-                            SELECT config_id FROM core_config_data
-                            WHERE path = 'dev/debug/template_hints_storefront'
-                              AND scope_id = $storeId
-                              AND value = 1
-                        ");
-                        if(null !== $result['config_id']) {
-                            $output->writeln("Templates Hints were already <info>enabled</info> for the <info>$theme</info> theme");
-                        } else {
-                            // Enable the Template Hints
-                            $this->config->saveConfig('dev/debug/template_hints_storefront', 1, 'stores', $storeId);
-
-                            // Remove required cache
-                            $this->deleteDirectory($this->varCache);
-                            $this->deleteDirectory($this->varPageCache);
-
-                            $output->writeln("Templates Hints are now <info>enabled</info> for the <info>$theme</info> theme");
-                        }
-
+                    $result = $connection->fetchRow("
+                        SELECT config_id FROM core_config_data
+                        WHERE path = 'dev/debug/template_hints_storefront'
+                          AND scope_id = $storeId
+                          AND value = 1
+                    ");
+                    if(null !== $result['config_id']) {
+                        $output->writeln("Templates Hints were already <info>enabled</info> for the <info>".self::THEME."</info> theme");
                     } else {
-                        $output->writeln("We couldn't find any storeId for the <info>$theme</info> theme");
+                        // Enable the Template Hints
+                        $this->config->saveConfig('dev/debug/template_hints_storefront', 1, 'stores', $storeId);
+
+                        // Remove required cache
+                        $this->deleteDirectory($this->varCache);
+                        $this->deleteDirectory($this->varPageCache);
+
+                        $output->writeln("Templates Hints are now <info>enabled</info> for the <info>".self::STORE."</info> theme");
                     }
 
                 } else {
-                    $output->writeln('The option <info>--t="ThemeName"</info> is required');
+                    $output->writeln("We couldn't find any storeId for the <info>".self::STORE."</info> store");
                 }
             break;
 
@@ -196,69 +195,64 @@ EOF
 
             case 'hints:off' :
             case 'h:off' :
-                if(null !== $input->getOption('t')) {
+                $storeId = null;
 
-                    $theme = strtolower($input->getOption('t'));
-                    $storeId = null;
+                $connection = $this->resource->getConnection('default');
+                $result = $connection->fetchRow("SELECT store_id FROM store WHERE name = '".self::STORE."'");
+                $storeId = $result['store_id'];
+
+                if(null !== $storeId) {
 
                     $connection = $this->resource->getConnection('default');
-                    $result = $connection->fetchRow("SELECT store_id FROM store WHERE name LIKE '%$theme%'");
-                    $storeId = $result['store_id'];
+                    $result = $connection->fetchRow("
+                        SELECT config_id FROM core_config_data
+                        WHERE path = 'dev/debug/template_hints_storefront'
+                          AND scope_id = $storeId
+                          AND value = 1
+                    ");
+                    if(null !== $result['config_id']) {
+                        // Disable the Template Hints
+                        $this->config->deleteConfig('dev/debug/template_hints_storefront', 'stores', $storeId);
 
-                    if(null !== $storeId) {
+                        // Remove required cache
+                        $this->deleteDirectory($this->varCache);
+                        $this->deleteDirectory($this->varPageCache);
 
-                        $connection = $this->resource->getConnection('default');
-                        $result = $connection->fetchRow("
-                            SELECT config_id FROM core_config_data
-                            WHERE path = 'dev/debug/template_hints_storefront'
-                              AND scope_id = $storeId
-                              AND value = 1
-                        ");
-                        if(null !== $result['config_id']) {
-                            // Disable the Template Hints
-                            $this->config->deleteConfig('dev/debug/template_hints_storefront', 'stores', $storeId);
-
-                            // Remove required cache
-                            $this->deleteDirectory($this->varCache);
-                            $this->deleteDirectory($this->varPageCache);
-
-                            $output->writeln("Templates Hints are now <info>disabled</info> for the <info>$theme</info> theme");
-                        } else {
-                            $output->writeln("Templates Hints were already <info>disabled</info> for the <info>$theme</info> theme");
-                        }
-
+                        $output->writeln("Templates Hints are now <info>disabled</info>");
                     } else {
-                        $output->writeln("We couldn't find any storeId for the <info>$theme</info> theme");
+                        $output->writeln("Templates Hints were already <info>disabled</info>");
                     }
 
                 } else {
-                    $output->writeln('The option <info>--t="ThemeName"</info> is required');
+                    $output->writeln("We couldn't find any storeId for the <info>".self::STORE."</info> store");
                 }
             break;
+
+
+
+            case 'clean:all' :
+            case 'c:all' : case 'clean:a' :
+            case 'c:a' :
+                $this->deleteDirectory($this->pubStatic);
+                $this->deleteDirectory($this->varCache);
+                $this->deleteDirectory($this->varPageCache);
+                $this->deleteDirectory($this->varViewPreprocessed);
+
+                $output->writeln('<info>Done!</info>');
+                break;
 
 
 
             case 'clean:styles' :
             case 'c:styles' : case 'clean:s' :
             case 'c:s' :
-                if(null !== $input->getOption('t')) {
-                    $themeRoot = str_replace('THEMENAME', $input->getOption('t'), $this->themeStyles);
-                    $this->deleteDirectory($themeRoot);
-                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $themeRoot).'</info>');
+                $themeRoot = str_replace('THEMENAME', self::THEME, $this->themeStyles);
+                $this->deleteDirectory($themeRoot); // css in pub/static
+                $this->deleteDirectory($this->varCache);
+                $this->deleteDirectory($this->varPageCache);
+                $this->deleteDirectory($this->varViewPreprocessed);
 
-                    $this->deleteDirectory($this->varCache);
-                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varCache).'</info>');
-
-                    $this->deleteDirectory($this->varPageCache);
-                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varPageCache).'</info>');
-
-                    $this->deleteDirectory($this->varViewPreprocessed);
-                    // $output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varViewPreprocessed).'</info>');
-
-                    $output->writeln('<info>Done!</info>');
-                } else {
-                    $output->writeln('The option <info>--t="ThemeName"</info> is required.');
-                }
+                $output->writeln('<info>Done!</info>');
             break;
 
 
@@ -268,10 +262,7 @@ EOF
             case 'clean:l' : case 'clean:t' :
             case 'c:l' : case 'c:t' :
                 $this->deleteDirectory($this->varCache);
-                //$output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varCache).'</info>');
-
                 $this->deleteDirectory($this->varPageCache);
-                //$output->writeln('<info>'.str_replace($this->directoryList->getRoot(), '', $this->varPageCache).'</info>');
 
                 $output->writeln('<info>Done!</info>');
             break;
@@ -281,9 +272,10 @@ EOF
             case 'override:template' :
             case 'o:template' : case 'override:t' :
             case 'o:t' :
-                if(null !== $input->getOption('f') && null !== $input->getOption('t')) {
-                    $vendorFile = $input->getOption('f');
-                    $vFile = str_replace('code/vendor', 'vendor', $vendorFile); // ie: vendor/magento/module-checkout/view/frontend/templates/cart.phtml
+                if(null !== $input->getOption('t')) {
+                    $vendorFile = $input->getOption('t');
+                    $vFile = str_replace('code/vendor', 'vendor', $vendorFile);
+                    // ie of $vFile: vendor/magento/module-checkout/view/frontend/templates/cart.phtml
 
                     $m = explode('/', $vFile);
                     $module = explode('module-', $m[2]);
@@ -297,9 +289,7 @@ EOF
                     $template = str_replace('frontend/', '', $template);
                     $template = str_replace('base/', '', $template); // ie: /templates/cart.phtml
 
-                    // $output->writeln('Debug: <info>'.$template.'</info>');
-
-                    $dest = 'app/design/frontend/'.self::COMPANY.'/'.$input->getOption('t').'/Magento_';
+                    $dest = 'app/design/frontend/'.self::COMPANY.'/'.self::THEME.'/Magento_';
                     $dest .= $module;
                     $dest .= $template;
 
@@ -308,8 +298,8 @@ Override the template by copying it in the <info>'.$dest.'</info> directory.
 ');
                 } else {
                     $output->writeln('
-The options <info>--t="ThemeName"</info> and <info>--f="FileName"</info> are required.
-Check all the available actions by using <info>bin/magento company --help</info>
+The option <info>--t="TemplateFile"</info> is required.
+Check all the available actions with <info>bin/magento company --help</info>
 ');
                 }
             break;
@@ -328,7 +318,8 @@ Check all the available actions by using <info>bin/magento company --help</info>
                     '"Mas lindo que pisar mierda en pata"',
                     '"Peor es casarse con la suegra"',
                     '"No me voy a cagar antes de tomar la purga"',
-                    '"Es tan pelotudo que necesita el culo de un vaso para hacer la O"'
+                    '"Es tan pelotudo que necesita el culo de un vaso para hacer la O"',
+                    '"Ya te voy a agarrar cagando sin papel"'
                 );
                 $output->writeln('<info>'.$arturPhrases[array_rand($arturPhrases)].'</info>');
                 $output->writeln('');
@@ -343,7 +334,7 @@ Check all the available actions by using <info>bin/magento company --help</info>
                 } else {
                     $output->writeln('<info>¯\_(ツ)_/¯</info>');
                 }
-                $output->writeln('Check all the available actions under <info>bin/magento '.self::COMMAND.' --help</info>');
+                $output->writeln('Check all the available actions with <info>bin/magento '.self::COMMAND.' --help</info>');
                 $output->writeln('');
         endswitch;
     }
@@ -357,7 +348,7 @@ Check all the available actions by using <info>bin/magento company --help</info>
             return unlink($dir);
         }
         foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..') { continue; }
+            if ($item == '.' || $item == '..' || $item == '.htaccess') { continue; }
             if (!$this->deleteDirectory($dir . "/" . $item, false)) {
                 chmod($dir . "/" . $item, 0777);
                 if (!$this->deleteDirectory($dir . "/" . $item, false)) return false;
@@ -366,4 +357,3 @@ Check all the available actions by using <info>bin/magento company --help</info>
         return true;
     }
 }
-

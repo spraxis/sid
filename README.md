@@ -1,4 +1,9 @@
-# SID: Console Tools for Magento 2
+# SID: Console tools for Magento 2
+
+## New v.0.0.2
+
+- Added clean:all (bin/magento c:a)
+- Added link to the PDP on the Admin's product page
 
 ## Installation
 
@@ -6,7 +11,7 @@
 ```
 $ git clone git@github.com:spraxis/sid.git app/code/Sebas/Sid
 ```
-- Enter your Company name in the following file:
+- Enter your Company, Theme and Store name in the following file:
 ```
 app/code/Sebas/ConsoleTools/Model/Sid.php
 ```
@@ -34,17 +39,27 @@ Same as:
 $ bin/magento sid m:c
 ```
 
-### Removed the specific cache to regenerate the CSS styles of a particular theme
+### Remove all cache (everything inside /var and /pub/static)
 
 ```
-$ bin/magento sid clean:styles --t="ThemeName"
+$ bin/magento sid clean:all
 ```
 Same as:
 ```
-$ bin/magento sid c:s --t="ThemeName"
+$ bin/magento sid c:s
 ```
 
-### Removed the specific cache to regenerate the layouts
+### Remove the specific cache to regenerate the CSS styles
+
+```
+$ bin/magento sid clean:styles
+```
+Same as:
+```
+$ bin/magento sid c:s
+```
+
+### Remove the specific cache to regenerate the layouts
 
 ```
 $ bin/magento sid clean:layouts
@@ -54,7 +69,7 @@ Same as:
 $ bin/magento sid c:l
 ```
 
-### Removed the specific cache to regenerate the templates
+### Remove the specific cache to regenerate the templates
 
 ```
 $ bin/magento sid clean:templates
@@ -67,15 +82,15 @@ $ bin/magento sid c:t
 ###  Get the path to our theme in order to override a vendor template
 
 ```
-$ bin/magento sid override:template --t="ThemeName" --f="vendor/..."
+$ bin/magento sid override:template --t="ThemeName" --t="vendor/..."
 ```
 Same as:
 ```
-$ bin/magento sid o:t --t="ThemeName" --f="vendor/..."
+$ bin/magento sid o:t --t="vendor/..."
 ```
 Example:
 ```
-$ bin/magento sid o:t --t="MyTheme" --f="vendor/magento/module-catalog/view/base/templates/product/price/amount/default.phtml"
+$ bin/magento sid o:t --t="vendor/magento/module-catalog/view/base/templates/product/price/amount/default.phtml"
 ```
 
 ### Downgrade the version of a database module to the one on our code
@@ -95,17 +110,17 @@ Example (for Sebas_MyLocation):
 $ bin/magento sid m:d --m="MyLocation"
 ```
 
-### Enable the Template Hints for a given theme
+### Enable the Template Hints
 <sub>
 It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > Yes
 </sub>
 
 ```
-$ bin/magento sid hint:on --t="ThemeName"
+$ bin/magento sid hint:on
 ```
 Same as:
 ```
-$ bin/magento sid h:on --t="ThemeName"
+$ bin/magento sid h:on
 ```
 
 ### Disable the Template Hints for a given theme
@@ -114,11 +129,11 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 </sub>
 
 ```
-$ bin/magento sid hint:off --t="ThemeName"
+$ bin/magento sid hint:off
 ```
 Same as:
 ```
-$ bin/magento sid h:off --t="ThemeName"
+$ bin/magento sid h:off
 ```
 
 # ¯\\\_(ツ)\_/¯
