@@ -123,7 +123,7 @@ Same as:
 $ bin/magento sid h:on
 ```
 
-### Disable the Template Hints for a given theme
+### Disable the Template Hints
 <sub>
 It saves you from going to Stores > Configuration, then change the Scope and then going to Advanced > Developer > Debug > Enabled Template Path Hints for Storefront > No
 </sub>
