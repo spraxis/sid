@@ -11,7 +11,7 @@
 ```
 $ git clone git@github.com:spraxis/sid.git app/code/Sebas/Sid
 ```
-- Enter your Company, Theme and Store name in the following file:
+- Enter your M2 info in the following file:
 ```
 app/code/Sebas/ConsoleTools/Model/Sid.php
 ```
@@ -52,8 +52,9 @@ $ bin/magento sid c:a
 ### Remove the specific cache to regenerate the CSS styles
 
 ```
-$ bin/magento sid clean:styles
+$ bin/magento sid clean:styles --t="ThemeName"
 ```
+The themename is optional. If none is specified, the one set in Model.php will be used.
 Same as:
 ```
 $ bin/magento sid c:s
@@ -116,8 +117,9 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 </sub>
 
 ```
-$ bin/magento sid hints:on
+$ bin/magento sid hints:on --t="ThemeName"
 ```
+The themename is optional. If none is specified, the one set in Model.php will be used.
 Same as:
 ```
 $ bin/magento sid h:on
@@ -129,8 +131,9 @@ It saves you from going to Stores > Configuration, then change the Scope and the
 </sub>
 
 ```
-$ bin/magento sid hints:off
+$ bin/magento sid hints:off --t="ThemeName"
 ```
+The themename is optional. If none is specified, the one set in Model.php will be used.
 Same as:
 ```
 $ bin/magento sid h:off
