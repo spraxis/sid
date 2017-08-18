@@ -14,7 +14,7 @@ $ git clone git@github.com:spraxis/sid.git app/code/Sebas/Sid
 ```
 - Enter your M2 info in the following file:
 ```
-app/code/Sebas/ConsoleTools/Model/Sid.php
+app/code/Sebas/Sid/Model/Sid.php
 ```
 - Enable the Sid module:
 ```
