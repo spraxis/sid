@@ -1,9 +1,10 @@
 # SID: Console tools for Magento 2
 
-## New v.0.0.2
+## v.0.0.2
 
 - Added clean:all (bin/magento c:a)
 - Added link to the PDP on the Admin's product page
+- Added files to ignore when clearing the cache
 
 ## Installation
 
