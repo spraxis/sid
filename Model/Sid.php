@@ -66,6 +66,7 @@ class Sid extends Command
                     new InputOption('f', '', InputOption::VALUE_OPTIONAL, 'Path to the template file, starting with vendor/', null),
                     new InputOption('t', '', InputOption::VALUE_OPTIONAL, 'Name of the theme', null),
                     new InputOption('m', '', InputOption::VALUE_OPTIONAL, 'Name of the module', null),
+                    new InputOption('s', '', InputOption::VALUE_OPTIONAL, 'Name of the store', null),
                     new InputOption('v', '', InputOption::VALUE_OPTIONAL, 'Desired version of the module', null)
                 )
             )
@@ -78,8 +79,8 @@ class Sid extends Command
 <info>$ %command.full_name% clean:templates (c:t)</info> Removes the specific cache to regenerate the templates
 <info>$ %command.full_name% override:template (o:t) --f="vendor/..." --t="ThemeName"</info> (--t optional) Returns the path to our theme in order to override a core template
 <info>$ %command.full_name% module:downgrade (m:d) --m="ModuleName" (just the name after the underscore)</info> Downgrades the version of the database module to the one on the code
-<info>$ %command.full_name% hint:on (h:on) --t="ThemeName"</info> (--t optional) Enables the Template Hints
-<info>$ %command.full_name% hint:off (h:off) --t="ThemeName"</info> (--t optional) Disables the Template Hints
+<info>$ %command.full_name% hint:on (h:on) --s="StoreName"</info> (--s optional) Enables the Template Hints
+<info>$ %command.full_name% hint:off (h:off) --s="StoreName"</info> (--s optional) Disables the Template Hints
 EOF
             );
 
@@ -95,6 +96,9 @@ EOF
     {
         switch($input->getArgument('action')) :
 
+            /**
+             * List all Company modules
+             */
             case 'modules:company' :
             case 'm:company' : case 'modules:c' :
             case 'm:c' :
@@ -119,6 +123,9 @@ EOF
 
 
 
+            /**
+             * Downgrade database module to code version
+             */
             case 'module:downgrade' :
             case 'm:downgrade' : case 'module:d' :
             case 'm:d' :
@@ -161,6 +168,9 @@ EOF
 
 
 
+            /**
+             * Enable the template hints
+             */
             case 'hints:on' :
             case 'h:on' :
                 $storeId = null;
@@ -198,6 +208,9 @@ EOF
 
 
 
+            /**
+             * Disable the template hints
+             */
             case 'hints:off' :
             case 'h:off' :
                 $storeId = null;
@@ -235,6 +248,9 @@ EOF
 
 
 
+            /**
+             * Clean all cache
+             */
             case 'clean:all' :
             case 'c:all' : case 'clean:a' :
             case 'c:a' :
@@ -248,11 +264,15 @@ EOF
 
 
 
+            /**
+             * Clean cache for styles
+             */
             case 'clean:styles' :
             case 'c:styles' : case 'clean:s' :
             case 'c:s' :
                 $theme = null !== $input->getOption('t') ? $input->getOption('t') : self::THEME;
                 $themeRoot = str_replace('THEMENAME', $theme, $this->themeStyles);
+
                 $this->deleteDirectory($themeRoot); // css in pub/static
                 $this->deleteDirectory($this->varCache);
                 $this->deleteDirectory($this->varPageCache);
@@ -263,6 +283,9 @@ EOF
 
 
 
+            /**
+             * Clean cache for layouts
+             */
             case 'clean:layouts' : case 'clean:templates' :
             case 'c:layouts' : case 'c:templates' :
             case 'clean:l' : case 'clean:t' :
@@ -275,6 +298,9 @@ EOF
 
 
 
+            /**
+             * Clean cache for templates
+             */
             case 'override:template' :
             case 'o:template' : case 'override:t' :
             case 'o:t' :
@@ -313,27 +339,9 @@ Check all the available actions with <info>bin/magento company --help</info>
 
 
 
-            case 'artur' :
-                $output->writeln('');
-                $arturPhrases = array(
-                    '"Paso como Pinocho en un detector de metales"',
-                    '"Le va a entrar como sordo al bombo"',
-                    '"Cuando la soga viene con mierda, agarrala con la boca"',
-                    '"Lo que no se va en lagrimas se va en suspiros"',
-                    '"Asi es la vida, unos cogen otros miran"',
-                    '"La religion me dice que hoy tengo q usar el disco"',
-                    '"Mas lindo que pisar mierda en pata"',
-                    '"Peor es casarse con la suegra"',
-                    '"No me voy a cagar antes de tomar la purga"',
-                    '"Es tan pelotudo que necesita el culo de un vaso para hacer la O"',
-                    '"Ya te voy a agarrar cagando sin papel"'
-                );
-                $output->writeln('<info>'.$arturPhrases[array_rand($arturPhrases)].'</info>');
-                $output->writeln('');
-                break;
-
-
-
+            /**
+             * Default behaviour
+             */
             default :
                 $output->writeln('');
                 if(null !== $input->getArgument('action')) {
@@ -347,13 +355,16 @@ Check all the available actions with <info>bin/magento company --help</info>
     }
 
 
-
+    /**
+     * Remove content for given folder
+     */
     function deleteDirectory($dir)
     {
         if (!file_exists($dir)) return true;
         if (!is_dir($dir) || is_link($dir)) {
             return unlink($dir);
         }
+
         foreach (scandir($dir) as $item) {
             if ($item == '.' || $item == '..') { continue; }
             if (in_array($item, self::KEEP_FILES)) { continue; }
@@ -362,6 +373,7 @@ Check all the available actions with <info>bin/magento company --help</info>
                 if (!$this->deleteDirectory($dir . "/" . $item, false)) return false;
             };
         }
+
         return true;
     }
 }
